@@ -1,13 +1,10 @@
 import { ObserveIsFavorite } from '@domain/usecases/observeIsFavorite';
-import { FavoritesRepository } from '@domain/repositories/favoritesRepository';
+import { createFavoritesRepositoryMock } from '@mocks/favoritesRepositoryMock';
 
 describe('ObserveIsFavorite', () => {
   it('delega para repository.isFavorite com o id informado', () => {
-    const repository: FavoritesRepository = {
-      getAll: jest.fn(),
-      toggle: jest.fn(),
-      isFavorite: jest.fn().mockReturnValue(true),
-    };
+    const repository = createFavoritesRepositoryMock();
+    repository.isFavorite.mockReturnValue(true);
 
     const observeIsFavorite = ObserveIsFavorite(repository);
     const result = observeIsFavorite(7);

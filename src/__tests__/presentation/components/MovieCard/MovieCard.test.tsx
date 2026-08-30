@@ -1,17 +1,14 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { MovieCard } from '@presentation/components/MovieCard';
-import { Movie } from '@domain/entities/movie';
+import { createMovie } from '@mocks/movieFixture';
 
-const movie: Movie = {
-  id: 1,
-  title: 'Matrix',
+const movie = createMovie({
   posterPath: '/poster.jpg',
   overview: 'Sinopse do filme',
   voteAverage: 8.456,
-  releaseYear: '1999',
   genres: ['Ação'],
-};
+});
 
 describe('MovieCard', () => {
   it('renderiza título, nota e ano, e dispara onPress ao tocar no card', async () => {

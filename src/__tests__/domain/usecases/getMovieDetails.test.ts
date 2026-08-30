@@ -1,23 +1,12 @@
 import { GetMovieDetails } from '@domain/usecases/getMovieDetails';
-import { MoviesRepository } from '@domain/repositories/moviesRepository';
-import { Movie } from '@domain/entities/movie';
+import { createMoviesRepositoryMock } from '@mocks/moviesRepositoryMock';
+import { createMovie } from '@mocks/movieFixture';
 
 describe('GetMovieDetails', () => {
   it('delega para repository.getDetails com o id informado', async () => {
-    const movie: Movie = {
-      id: 42,
-      title: 'Matrix',
-      posterPath: null,
-      overview: '',
-      voteAverage: 8,
-      releaseYear: '1999',
-      genres: [],
-    };
-    const repository: MoviesRepository = {
-      getPopular: jest.fn(),
-      search: jest.fn(),
-      getDetails: jest.fn().mockResolvedValue(movie),
-    };
+    const movie = createMovie({ id: 42 });
+    const repository = createMoviesRepositoryMock();
+    repository.getDetails.mockResolvedValue(movie);
 
     const getMovieDetails = GetMovieDetails(repository);
     const result = await getMovieDetails(42);

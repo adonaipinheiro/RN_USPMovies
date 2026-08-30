@@ -67,7 +67,7 @@ export function FavoritesScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <Text style={styles.title}>Favoritos</Text>
-      <StateView state={state} onRetry={() => {}} emptyMessage="Favorite um filme para vê-lo aqui.">
+      <StateView state={state} emptyMessage="Favorite um filme para vê-lo aqui.">
         {(movies: Movie[]) => (
           <FlatList
             data={movies}

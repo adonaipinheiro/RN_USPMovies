@@ -63,4 +63,14 @@ describe('StateView', () => {
     fireEvent.press(getByText('Tentar novamente'));
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
+
+  it('no estado "error" sem onRetry, não renderiza o botão de tentar novamente', async () => {
+    const state: UiState<string> = { type: 'error', message: 'Falha de rede' };
+    const { getByText, queryByText } = await render(
+      <StateView state={state}>{value => <Text>{value}</Text>}</StateView>,
+    );
+
+    expect(getByText('Falha de rede')).toBeTruthy();
+    expect(queryByText('Tentar novamente')).toBeNull();
+  });
 });

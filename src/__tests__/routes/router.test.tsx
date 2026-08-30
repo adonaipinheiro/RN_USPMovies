@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, waitFor } from '@testing-library/react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Router } from '@routes/router';
+import { createQueryClientWrapper } from '@mocks/queryClientWrapper';
 
 jest.mock('@di/container', () => ({
   container: require('@mocks/containerMock').createContainerMock(),
@@ -9,11 +9,11 @@ jest.mock('@di/container', () => ({
 
 describe('Router', () => {
   it('renderiza a navegação principal dentro do NavigationContainer', async () => {
-    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const Wrapper = createQueryClientWrapper();
     const { getAllByText } = await render(
-      <QueryClientProvider client={queryClient}>
+      <Wrapper>
         <Router />
-      </QueryClientProvider>,
+      </Wrapper>,
     );
 
     await waitFor(() => expect(getAllByText('Populares').length).toBeGreaterThan(0));

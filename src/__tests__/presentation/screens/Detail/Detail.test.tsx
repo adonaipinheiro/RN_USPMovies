@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DetailScreen } from '@presentation/screens/Detail';
 import { container } from '@di/container';
-import { Movie } from '@domain/entities/movie';
+import { createMovie } from '@mocks/movieFixture';
+import { createQueryClientWrapper } from '@mocks/queryClientWrapper';
 
 jest.mock('@react-navigation/native', () =>
   require('@mocks/navigationMock').createNavigationMock({ movieId: 1 }),
@@ -18,22 +18,18 @@ const mockedContainer = container as unknown as {
   toggleFavorite: jest.Mock;
 };
 
-const movie: Movie = {
-  id: 1,
-  title: 'Matrix',
+const movie = createMovie({
   posterPath: '/p.jpg',
   overview: 'Sinopse',
-  voteAverage: 8,
-  releaseYear: '1999',
   genres: ['Ação', 'Ficção'],
-};
+});
 
 async function renderScreen() {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const Wrapper = createQueryClientWrapper();
   return render(
-    <QueryClientProvider client={queryClient}>
+    <Wrapper>
       <DetailScreen />
-    </QueryClientProvider>,
+    </Wrapper>,
   );
 }
 
@@ -76,5 +72,13 @@ describe('DetailScreen', () => {
 
     await waitFor(() => expect(getByText('Matrix')).toBeTruthy());
     expect(queryByText('Ação')).toBeNull();
+  });
+
+  it('não renderiza o ano de lançamento quando ausente', async () => {
+    mockedContainer.getMovieDetails.mockResolvedValue({ ...movie, releaseYear: '' });
+    const { getByText, queryByText } = await renderScreen();
+
+    await waitFor(() => expect(getByText('Matrix')).toBeTruthy());
+    expect(queryByText(/1999/)).toBeNull();
   });
 });

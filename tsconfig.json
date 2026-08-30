@@ -1,5 +1,21 @@
 {
   "extends": "@react-native/typescript-config",
+  "compilerOptions": {
+    "moduleSuffixes": [".ios", ".android", ".native", ""],
+    "paths": {
+      "@domain/*": ["./src/domain/*"],
+      "@infra/*": ["./src/infra/*"],
+      "@repositories/*": ["./src/repositories/*"],
+      "@presentation/*": ["./src/presentation/*"],
+      "@store/*": ["./src/store/*"],
+      "@routes": ["./src/routes/index.ts"],
+      "@routes/*": ["./src/routes/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@hooks/*": ["./src/hooks/*"],
+      "@di/*": ["./src/di/*"],
+      "@mocks/*": ["./src/__tests__/__mocks__/*"]
+    }
+  },
   "include": ["**/*.ts", "**/*.tsx"],
   "exclude": ["**/node_modules", "**/Pods"]
 }

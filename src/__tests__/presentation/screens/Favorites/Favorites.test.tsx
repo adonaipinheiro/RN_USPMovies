@@ -4,7 +4,8 @@ import { FavoritesScreen } from '@presentation/screens/Favorites';
 import { container } from '@di/container';
 import { useFavoritesStore } from '@store/useFavoritesStore';
 import { useThemeStore } from '@store/useThemeStore';
-import { Movie } from '@domain/entities/movie';
+import { coordinator } from '@routes/navigation';
+import { createMovie } from '@mocks/movieFixture';
 
 jest.mock('@di/container', () => ({
   container: require('@mocks/containerMock').createContainerMock(),
@@ -15,15 +16,8 @@ const mockedContainer = container as unknown as {
   toggleFavorite: jest.Mock;
 };
 
-const movie: Movie = {
-  id: 1,
-  title: 'Matrix',
-  posterPath: null,
-  overview: '',
-  voteAverage: 8,
-  releaseYear: '1999',
-  genres: [],
-};
+const movie = createMovie();
+const movie2 = createMovie({ id: 2, title: 'Matrix Reloaded' });
 
 describe('FavoritesScreen', () => {
   beforeEach(() => {
@@ -46,6 +40,25 @@ describe('FavoritesScreen', () => {
     fireEvent.press(getByText('♥'));
 
     expect(mockedContainer.toggleFavorite).toHaveBeenCalledWith(movie);
+  });
+
+  it('navega para o detalhe ao tocar em um card e renderiza o separador entre itens', async () => {
+    mockedContainer.getFavorites.mockReturnValue([movie, movie2]);
+    useFavoritesStore.setState({
+      favorites: {
+        1: { movie, addedAt: Date.now() },
+        2: { movie: movie2, addedAt: Date.now() },
+      },
+    });
+    const gotToDetail = jest.spyOn(coordinator, 'gotToDetail').mockImplementation(() => {});
+
+    const { getByText } = await render(<FavoritesScreen />);
+
+    expect(getByText('Matrix Reloaded')).toBeTruthy();
+    fireEvent.press(getByText('Matrix'));
+
+    expect(gotToDetail).toHaveBeenCalledWith(1);
+    gotToDetail.mockRestore();
   });
 
   it('lista os favoritos e permite alternar o tema', async () => {

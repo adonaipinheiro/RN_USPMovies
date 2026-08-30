@@ -2,11 +2,7 @@ import { coordinator } from '@routes/navigation/coordinator';
 import { navigation } from '@routes/navigation/navigation';
 
 jest.mock('@routes/navigation/navigation', () => ({
-  navigation: {
-    push: jest.fn(),
-    replace: jest.fn(),
-    goBack: jest.fn(),
-  },
+  navigation: require('@mocks/navigationServiceMock').createNavigationServiceMock(),
 }));
 
 const mockedNavigation = navigation as unknown as { push: jest.Mock; goBack: jest.Mock };

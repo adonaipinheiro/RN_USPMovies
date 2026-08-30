@@ -1,7 +1,9 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Button as IosButton } from '@presentation/components/Button/Button.ios';
+import { Button as IosButton, resolvePressableStyle } from '@presentation/components/Button/Button.ios';
 import { Button as AndroidButton } from '@presentation/components/Button/Button.android';
+import { createStyles } from '@presentation/components/Button/styles';
+import { lightColors } from '@utils/colors';
 
 describe('Button', () => {
   it('(iOS) renderiza o label e dispara onPress ao tocar', async () => {
@@ -13,12 +15,12 @@ describe('Button', () => {
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
-  it('(iOS) aplica o estilo de "pressed" enquanto o dedo está na tela', async () => {
-    const { getByText } = await render(<IosButton label="Tentar novamente" onPress={() => {}} />);
-    const label = getByText('Tentar novamente');
+  it('(iOS) resolve o estilo tanto para o estado normal quanto para o "pressed"', () => {
+    const styles = createStyles(lightColors);
+    const styleFn = resolvePressableStyle(styles);
 
-    fireEvent(label, 'pressIn');
-    fireEvent(label, 'pressOut');
+    expect(styleFn({ pressed: false })).toEqual([styles.button, false]);
+    expect(styleFn({ pressed: true })).toEqual([styles.button, styles.pressed]);
   });
 
   it('(Android) renderiza o label e dispara onPress ao tocar', async () => {

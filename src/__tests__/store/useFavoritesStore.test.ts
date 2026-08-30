@@ -1,26 +1,10 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useFavoritesStore, useIsFavorite } from '@store/useFavoritesStore';
 import { storage } from '@infra/storage/mmkv';
-import { Movie } from '@domain/entities/movie';
+import { createMovie } from '@mocks/movieFixture';
 
-const movie: Movie = {
-  id: 1,
-  title: 'Matrix',
-  posterPath: null,
-  overview: '',
-  voteAverage: 8,
-  releaseYear: '1999',
-  genres: [],
-};
-const movie2: Movie = {
-  id: 2,
-  title: 'Matrix Reloaded',
-  posterPath: null,
-  overview: '',
-  voteAverage: 7,
-  releaseYear: '2003',
-  genres: [],
-};
+const movie = createMovie();
+const movie2 = createMovie({ id: 2, title: 'Matrix Reloaded', voteAverage: 7, releaseYear: '2003' });
 
 describe('useFavoritesStore', () => {
   beforeEach(() => {

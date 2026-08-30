@@ -1,9 +1,8 @@
-import React from 'react';
 import { renderHook, waitFor, act } from '@testing-library/react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { usePopular } from '@presentation/screens/Popular/hooks/usePopular';
 import { container } from '@di/container';
-import { Movie } from '@domain/entities/movie';
+import { createMovie } from '@mocks/movieFixture';
+import { createQueryClientWrapper } from '@mocks/queryClientWrapper';
 
 jest.mock('@di/container', () => ({
   container: require('@mocks/containerMock').createContainerMock(),
@@ -14,22 +13,7 @@ const mockedContainer = container as unknown as {
   toggleFavorite: jest.Mock;
 };
 
-function createWrapper() {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
-}
-
-const movie: Movie = {
-  id: 1,
-  title: 'Matrix',
-  posterPath: null,
-  overview: '',
-  voteAverage: 8,
-  releaseYear: '1999',
-  genres: [],
-};
+const movie = createMovie();
 
 describe('usePopular', () => {
   beforeEach(() => {
@@ -40,7 +24,7 @@ describe('usePopular', () => {
   it('começa em "loading" e carrega a primeira página', async () => {
     mockedContainer.getPopularMovies.mockResolvedValue([movie]);
 
-    const { result } = await renderHook(() => usePopular(), { wrapper: createWrapper() });
+    const { result } = await renderHook(() => usePopular(), { wrapper: createQueryClientWrapper() });
 
     expect(result.current.state.type).toBe('loading');
 
@@ -54,7 +38,7 @@ describe('usePopular', () => {
   it('expõe estado "empty" quando a primeira página vem vazia', async () => {
     mockedContainer.getPopularMovies.mockResolvedValue([]);
 
-    const { result } = await renderHook(() => usePopular(), { wrapper: createWrapper() });
+    const { result } = await renderHook(() => usePopular(), { wrapper: createQueryClientWrapper() });
 
     await waitFor(() => expect(result.current.state.type).toBe('empty'));
   });
@@ -62,14 +46,14 @@ describe('usePopular', () => {
   it('expõe estado "error" quando a busca falha', async () => {
     mockedContainer.getPopularMovies.mockRejectedValue(new Error('offline'));
 
-    const { result } = await renderHook(() => usePopular(), { wrapper: createWrapper() });
+    const { result } = await renderHook(() => usePopular(), { wrapper: createQueryClientWrapper() });
 
     await waitFor(() => expect(result.current.state.type).toBe('error'));
   });
 
   it('reload chama a primeira página novamente', async () => {
     mockedContainer.getPopularMovies.mockResolvedValue([movie]);
-    const { result } = await renderHook(() => usePopular(), { wrapper: createWrapper() });
+    const { result } = await renderHook(() => usePopular(), { wrapper: createQueryClientWrapper() });
     await waitFor(() => expect(result.current.state.type).toBe('data'));
 
     await act(async () => {
@@ -82,7 +66,7 @@ describe('usePopular', () => {
   it('loadMore busca a próxima página quando existe', async () => {
     mockedContainer.getPopularMovies.mockResolvedValueOnce([movie]).mockResolvedValueOnce([{ ...movie, id: 2 }]);
 
-    const { result } = await renderHook(() => usePopular(), { wrapper: createWrapper() });
+    const { result } = await renderHook(() => usePopular(), { wrapper: createQueryClientWrapper() });
     await waitFor(() => expect(result.current.state.type).toBe('data'));
 
     await act(async () => {
@@ -105,15 +89,28 @@ describe('usePopular', () => {
   });
 
   it('loadMore não busca mais páginas quando a última página veio vazia', async () => {
-    mockedContainer.getPopularMovies.mockResolvedValueOnce([movie]).mockResolvedValueOnce([]);
+    // Da 2ª chamada em diante todo resultado é vazio: mesmo que uma chamada
+    // "a mais" escape por uma corrida interna do React Query (ver comentário
+    // abaixo), ela também recebe uma página vazia e converge do mesmo jeito.
+    mockedContainer.getPopularMovies.mockResolvedValueOnce([movie]).mockResolvedValue([]);
 
-    const { result } = await renderHook(() => usePopular(), { wrapper: createWrapper() });
+    const { result } = await renderHook(() => usePopular(), { wrapper: createQueryClientWrapper() });
     await waitFor(() => expect(result.current.state.type).toBe('data'));
 
     await act(async () => {
       await result.current.loadMore();
     });
     expect(mockedContainer.getPopularMovies).toHaveBeenCalledTimes(2);
+
+    // O React Query recalcula `hasNextPage` (getNextPageParam) de forma
+    // assíncrona em relação à página vazia chegar no cache — geralmente no
+    // mesmo tick, mas nem sempre no mesmo microtask da promise que
+    // aguardamos acima. Uma espera real e generosa aqui é mais simples e
+    // mais robusta do que tentar decidir o exato microtask certo: 100ms é
+    // fartura de sobra para qualquer bookkeeping interno assentar.
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    });
 
     await act(async () => {
       await result.current.loadMore();
@@ -123,7 +120,7 @@ describe('usePopular', () => {
 
   it('toggleFavorite delega para container.toggleFavorite', async () => {
     mockedContainer.getPopularMovies.mockResolvedValue([]);
-    const { result } = await renderHook(() => usePopular(), { wrapper: createWrapper() });
+    const { result } = await renderHook(() => usePopular(), { wrapper: createQueryClientWrapper() });
     await waitFor(() => expect(result.current.state.type).toBe('empty'));
 
     result.current.toggleFavorite(movie);

@@ -1,9 +1,8 @@
-import React from 'react';
 import { renderHook, waitFor } from '@testing-library/react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useDetail } from '@presentation/screens/Detail/hooks/useDetail';
 import { container } from '@di/container';
-import { Movie } from '@domain/entities/movie';
+import { createMovie } from '@mocks/movieFixture';
+import { createQueryClientWrapper } from '@mocks/queryClientWrapper';
 
 jest.mock('@react-navigation/native', () =>
   require('@mocks/navigationMock').createNavigationMock({ movieId: 42 }),
@@ -18,22 +17,7 @@ const mockedContainer = container as unknown as {
   toggleFavorite: jest.Mock;
 };
 
-function createWrapper() {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
-}
-
-const movie: Movie = {
-  id: 42,
-  title: 'Matrix',
-  posterPath: null,
-  overview: '',
-  voteAverage: 8,
-  releaseYear: '1999',
-  genres: [],
-};
+const movie = createMovie({ id: 42 });
 
 describe('useDetail', () => {
   beforeEach(() => {
@@ -44,7 +28,7 @@ describe('useDetail', () => {
   it('começa em "loading" e carrega os detalhes do filme da rota', async () => {
     mockedContainer.getMovieDetails.mockResolvedValue(movie);
 
-    const { result } = await renderHook(() => useDetail(), { wrapper: createWrapper() });
+    const { result } = await renderHook(() => useDetail(), { wrapper: createQueryClientWrapper() });
     expect(result.current.state.type).toBe('loading');
 
     await waitFor(() => expect(result.current.state.type).toBe('data'));
@@ -53,7 +37,7 @@ describe('useDetail', () => {
 
   it('expõe "error" quando a busca falha, e retry tenta novamente', async () => {
     mockedContainer.getMovieDetails.mockRejectedValueOnce(new Error('offline'));
-    const { result } = await renderHook(() => useDetail(), { wrapper: createWrapper() });
+    const { result } = await renderHook(() => useDetail(), { wrapper: createQueryClientWrapper() });
 
     await waitFor(() => expect(result.current.state.type).toBe('error'));
 
@@ -65,7 +49,7 @@ describe('useDetail', () => {
 
   it('toggleFavorite não faz nada enquanto o filme não carregou', async () => {
     mockedContainer.getMovieDetails.mockImplementation(() => new Promise(() => {}));
-    const { result } = await renderHook(() => useDetail(), { wrapper: createWrapper() });
+    const { result } = await renderHook(() => useDetail(), { wrapper: createQueryClientWrapper() });
 
     result.current.toggleFavorite();
 
@@ -74,7 +58,7 @@ describe('useDetail', () => {
 
   it('toggleFavorite delega para container.toggleFavorite quando o filme já carregou', async () => {
     mockedContainer.getMovieDetails.mockResolvedValue(movie);
-    const { result } = await renderHook(() => useDetail(), { wrapper: createWrapper() });
+    const { result } = await renderHook(() => useDetail(), { wrapper: createQueryClientWrapper() });
     await waitFor(() => expect(result.current.state.type).toBe('data'));
 
     result.current.toggleFavorite();

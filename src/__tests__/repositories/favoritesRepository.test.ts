@@ -1,22 +1,14 @@
 import { favoritesRepository } from '@repositories/favoritesRepository';
 import { useFavoritesStore } from '@store/useFavoritesStore';
-import { Movie } from '@domain/entities/movie';
+import { createMovie } from '@mocks/movieFixture';
 
 jest.mock('@store/useFavoritesStore', () => ({
-  useFavoritesStore: { getState: jest.fn() },
+  useFavoritesStore: require('@mocks/favoritesStoreMock').createFavoritesStoreMock(),
 }));
 
 const mockedStore = useFavoritesStore as unknown as { getState: jest.Mock };
 
-const movie: Movie = {
-  id: 1,
-  title: 'Matrix',
-  posterPath: null,
-  overview: '',
-  voteAverage: 8,
-  releaseYear: '1999',
-  genres: [],
-};
+const movie = createMovie();
 
 describe('favoritesRepository', () => {
   it('getAll delega para useFavoritesStore.getState().getAll()', () => {

@@ -10,7 +10,10 @@ import { createStyles } from './styles';
 
 interface StateViewProps<T> {
   state: UiState<T>;
-  onRetry: () => void;
+  // Opcional: telas sem uma ação de retry real (ex.: Favoritos, que só lê o
+  // estado local e nunca entra em 'error') simplesmente não passam a prop —
+  // em vez de forçar um callback vazio só para satisfazer o tipo.
+  onRetry?: () => void;
   emptyMessage?: string;
   children: (value: T) => React.ReactNode;
 }
@@ -44,9 +47,11 @@ export function StateView<T>({ state, onRetry, emptyMessage, children }: StateVi
     <View style={styles.center}>
       <Text style={styles.title}>Não foi possível carregar</Text>
       <Text style={styles.message}>{state.message}</Text>
-      <View style={styles.retryButton}>
-        <Button label="Tentar novamente" onPress={onRetry} />
-      </View>
+      {onRetry ? (
+        <View style={styles.retryButton}>
+          <Button label="Tentar novamente" onPress={onRetry} />
+        </View>
+      ) : null}
     </View>
   );
 }

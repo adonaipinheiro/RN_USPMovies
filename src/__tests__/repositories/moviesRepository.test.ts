@@ -3,7 +3,7 @@ import { api } from '@infra/http/api';
 import { storage } from '@infra/storage/mmkv';
 
 jest.mock('@infra/http/api', () => ({
-  api: { get: jest.fn() },
+  api: require('@mocks/apiMock').createApiMock(),
 }));
 
 const mockedApi = api as unknown as { get: jest.Mock };
@@ -61,6 +61,18 @@ describe('moviesRepository', () => {
     mockedApi.get.mockRejectedValueOnce(new Error('offline'));
 
     await expect(moviesRepository.getPopular(2)).rejects.toThrow('offline');
+  });
+
+  it('getPopular(page > 1) não grava cache', async () => {
+    mockedApi.get.mockResolvedValueOnce({
+      data: { page: 2, results: [{ id: 2, title: 'Matrix Reloaded', poster_path: null }] },
+    });
+    await moviesRepository.getPopular(2);
+
+    // se tivesse gravado cache sob a chave da página 1, a falha abaixo
+    // seria mascarada por um fallback bem-sucedido.
+    mockedApi.get.mockRejectedValueOnce(new Error('offline'));
+    await expect(moviesRepository.getPopular(1)).rejects.toThrow('offline');
   });
 
   it('search delega para /search/movie com query e página', async () => {

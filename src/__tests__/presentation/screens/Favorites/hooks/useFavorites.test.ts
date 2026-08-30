@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/react-native';
 import { useFavorites } from '@presentation/screens/Favorites/hooks/useFavorites';
 import { container } from '@di/container';
 import { useFavoritesStore } from '@store/useFavoritesStore';
-import { Movie } from '@domain/entities/movie';
+import { createMovie } from '@mocks/movieFixture';
 
 jest.mock('@di/container', () => ({
   container: require('@mocks/containerMock').createContainerMock(),
@@ -13,15 +13,7 @@ const mockedContainer = container as unknown as {
   toggleFavorite: jest.Mock;
 };
 
-const movie: Movie = {
-  id: 1,
-  title: 'Matrix',
-  posterPath: null,
-  overview: '',
-  voteAverage: 8,
-  releaseYear: '1999',
-  genres: [],
-};
+const movie = createMovie();
 
 describe('useFavorites', () => {
   beforeEach(() => {

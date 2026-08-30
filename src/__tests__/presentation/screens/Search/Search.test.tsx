@@ -1,9 +1,10 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SearchScreen } from '@presentation/screens/Search';
 import { container } from '@di/container';
-import { Movie } from '@domain/entities/movie';
+import { coordinator } from '@routes/navigation';
+import { createMovie } from '@mocks/movieFixture';
+import { createQueryClientWrapper } from '@mocks/queryClientWrapper';
 
 jest.mock('@di/container', () => ({
   container: require('@mocks/containerMock').createContainerMock(),
@@ -14,22 +15,15 @@ const mockedContainer = container as unknown as {
   toggleFavorite: jest.Mock;
 };
 
-const movie: Movie = {
-  id: 1,
-  title: 'Matrix',
-  posterPath: null,
-  overview: 'Sinopse',
-  voteAverage: 8,
-  releaseYear: '1999',
-  genres: [],
-};
+const movie = createMovie({ overview: 'Sinopse' });
+const movie2 = createMovie({ id: 2, title: 'Matrix Reloaded', overview: 'Sinopse' });
 
 async function renderScreen() {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const Wrapper = createQueryClientWrapper();
   return render(
-    <QueryClientProvider client={queryClient}>
+    <Wrapper>
       <SearchScreen />
-    </QueryClientProvider>,
+    </Wrapper>,
   );
 }
 
@@ -73,6 +67,20 @@ describe('SearchScreen', () => {
     fireEvent.changeText(getByPlaceholderText('Título do filme'), 'inexistente');
 
     await waitFor(() => expect(getByText('Nada por aqui')).toBeTruthy(), { timeout: 2000 });
+  });
+
+  it('navega para o detalhe ao tocar em um card e renderiza o separador entre itens', async () => {
+    mockedContainer.searchMovies.mockResolvedValue([movie, movie2]);
+    const gotToDetail = jest.spyOn(coordinator, 'gotToDetail').mockImplementation(() => {});
+    const { getByPlaceholderText, getByText } = await renderScreen();
+
+    fireEvent.changeText(getByPlaceholderText('Título do filme'), 'matrix');
+
+    await waitFor(() => expect(getByText('Matrix Reloaded')).toBeTruthy(), { timeout: 2000 });
+    fireEvent.press(getByText('Matrix'));
+
+    expect(gotToDetail).toHaveBeenCalledWith(1);
+    gotToDetail.mockRestore();
   });
 
   it('cancela a busca anterior ao digitar rapidamente (debounce)', async () => {

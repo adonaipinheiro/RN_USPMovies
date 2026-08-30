@@ -1,103 +1,126 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# RN_USPMovies 🎬
 
-# Getting Started
+[![CI](https://github.com/adonaipinheiro/RN_USPMovies/actions/workflows/ci.yml/badge.svg)](https://github.com/adonaipinheiro/RN_USPMovies/actions/workflows/ci.yml)
+[![Release](https://github.com/adonaipinheiro/RN_USPMovies/actions/workflows/release.yml/badge.svg)](https://github.com/adonaipinheiro/RN_USPMovies/actions/workflows/release.yml)
+![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)
+![Tests](https://img.shields.io/badge/tests-109_passing-brightgreen)
+![React Native](https://img.shields.io/badge/React_Native-0.87-blue)
+![React](https://img.shields.io/badge/React-19-149eca)
+![TypeScript](https://img.shields.io/badge/TypeScript-6.x-3178c6)
+![New Architecture](https://img.shields.io/badge/New_Architecture-on-8a2be2)
+![Platform](https://img.shields.io/badge/platform-Android-3ddc84)
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+Catálogo de filmes consumindo a API do **TMDB**, escrito em React Native. É o app
+de referência da stack RN do curso **Arquitetura Mobile I‑II** (MBA em Engenharia
+de Software — USP/Esalq). O mesmo escopo funcional e a mesma arquitetura são
+implementados em paralelo em três stacks (Kotlin/Android, Swift/iOS e este RN)
+para mostrar que **arquitetura é um plano independente da tecnologia**.
 
-## Step 1: Start Metro
+> Projeto didático. O foco é a organização em camadas, os testes e a esteira de
+> CI/CD — não uma publicação real na loja.
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## Funcionalidades
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+| # | Feature | Detalhe |
+|---|---|---|
+| F1 | Lista de populares | paginação infinita |
+| F2 | Busca | com debounce |
+| F3 | Detalhe do filme | — |
+| F4 | Favoritar / desfavoritar | persistido local (MMKV), funciona offline |
+| F5 | Tela de favoritos | lê o snapshot local |
+| F6 | Cache offline dos populares | aplicado dentro do repositório |
 
-```sh
-# Using npm
-npm start
+Toda tela de dados trata os estados **loading / data / empty / error**.
 
-# OR using Yarn
-yarn start
+## Arquitetura
+
+Quatro camadas como pastas de 1º nível em `src/`, com a regra de dependência
+apontando para o domínio:
+
+```
+presentation ──► domain ◄── repositories ──► infra
 ```
 
-## Step 2: Build and run your app
+| Camada | Papel | Conteúdo |
+|---|---|---|
+| `domain/` | regras e contratos, sem dependência de framework | `entities/movie.ts`, `repositories/*` (interfaces), `usecases/*` (`getPopularMovies`, `searchMovies`, `getMovieDetails`, `toggleFavorite`, `getFavorites`, `observeIsFavorite`) |
+| `repositories/` | implementam os contratos do domínio; conhecem "o que é um filme" | `moviesRepository.ts`, `favoritesRepository.ts`, `movieMapper.ts`, `dto/` |
+| `infra/` | encanamento técnico genérico, não sabe o que é um filme | `http/api.ts` (axios + interceptors), `storage/mmkv.ts` |
+| `presentation/` | UI e estado de tela | `screens/{Popular,Search,Detail,Favorites}` (View + `hooks/useX.ts` como ViewModel), `components/` (`MovieCard`, `FavButton`, `StateView`, `Button`) |
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+Transversais: `di/container.ts` (composition root), `store/` (Zustand — favoritos e
+tema, persistidos via MMKV), `routes/` (React Navigation v7 + `navigation/coordinator.ts`),
+`hooks/`, `utils/`.
 
-### Android
+## Stack
+
+- **React Native 0.87** (New Architecture) · **React 19** · **TypeScript**
+- **TanStack React Query v5** — server state (populares, busca, detalhe)
+- **Zustand v5** — client state (favoritos, tema) com persistência **MMKV**
+- **axios** — camada `infra/http`
+- **React Navigation v7** — bottom tabs + native stack
+- **Jest** + **@testing-library/react-native** — testes
+- `StyleSheet` puro (sem Tailwind), tema light/dark, aliases `@domain`, `@infra`, `@repositories`, `@presentation`, `@store`, `@routes`, `@utils`, `@hooks`, `@di`
+
+## Rodando o projeto
+
+Pré‑requisitos: ambiente RN configurado ([guia oficial](https://reactnative.dev/docs/set-up-your-environment)),
+**Node ≥ 22.11** e um token da API do TMDB.
 
 ```sh
-# Using npm
-npm run android
+# 1. dependências
+yarn install
 
-# OR using Yarn
+# 2. variáveis de ambiente
+cp .env.example .env
+# edite .env e coloque seu TMDB_ACCESS_TOKEN (token v4 do TMDB)
+
+# 3. Metro
+yarn start
+
+# 4. em outro terminal — Android
 yarn android
 ```
 
-### iOS
+iOS também roda localmente (`bundle install && bundle exec pod install` em `ios/`,
+depois `yarn ios`), mas ainda **não tem CI**.
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
+## Testes
 
 ```sh
-bundle exec pod install
+yarn test              # roda a suíte
+yarn test --coverage   # com cobertura
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+**35 suítes · 109 testes · 100% de cobertura.** O `jest.config.js` trava o
+`coverageThreshold` em 100% (branches/functions/lines/statements) — a suíte
+reprova se a cobertura cair. Os testes espelham `src/` 1:1 em `src/__tests__/`,
+com mocks centralizados em `src/__tests__/__mocks__/` (alias `@mocks`).
 
-```sh
-# Using npm
-npm run ios
+## CI/CD
 
-# OR using Yarn
-yarn ios
+GitHub Actions, **Android por enquanto**:
+
+- **`ci.yml`** — `yarn lint` + `yarn test --coverage` em cada PR e push (`main`/`develop`).
+- **`release.yml`** — a cada push em `main`/`develop`: bump de versão
+  (`minor` em `main`, `patch` em `develop`), tag `vX.Y.Z`, GitHub Release, e
+  dispara o build Android.
+- **`android-release.yml`** — `./gradlew bundleRelease` assinado, publica o
+  `.aab` como artefato do run. Envio pro Google Play está pronto, porém comentado.
+
+Detalhes, keystore e secrets em [`docs/CI-CD.md`](docs/CI-CD.md).
+
+## Estrutura de pastas
+
 ```
-
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# CI/CD
-
-GitHub Actions, Android por enquanto: `ci.yml` roda lint + testes (cobertura
-100%) em cada PR, e `release.yml` sobe a versão e gera o `.aab` assinado a cada
-push em `main` / `develop`. Detalhes e secrets em [`docs/CI-CD.md`](docs/CI-CD.md).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+src/
+├── domain/          entities · repositories (interfaces) · usecases
+├── repositories/    implementações + mapper + dto
+├── infra/           http (axios) · storage (mmkv)
+├── presentation/    screens (View + hook/ViewModel) · components · state
+├── routes/          navigation (coordinator) · stack · theme
+├── store/           zustand (favoritos, tema)
+├── di/              container (composition root)
+├── hooks/ · utils/
+└── __tests__/       espelha src/ 1:1 · __mocks__/
+```

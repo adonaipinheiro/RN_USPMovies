@@ -1,0 +1,69 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.bump.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Install dependencies
+        uses: ./.github/actions/install-deps
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump package.json version
+        id: bump
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            npm version minor --no-git-tag-version
+          else
+            npm version patch --no-git-tag-version
+          fi
+          echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Sync Android native version
+        # react-native-version writes versionName / versionCode into
+        # android/app/build.gradle from package.json. Invoked via npx — it is
+        # never installed as a project dependency.
+        run: npx --yes react-native-version --target android --never-amend
+
+      - name: Commit and tag version bump
+        run: |
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m "chore(release): bump version to ${{ steps.bump.outputs.version }} [skip ci]"
+          git tag -a "v${{ steps.bump.outputs.version }}" -m "v${{ steps.bump.outputs.version }}"
+          git push origin HEAD:${{ github.ref_name }}
+          git push origin "v${{ steps.bump.outputs.version }}"
+
+      - name: Create GitHub Release
+        if: github.ref_name == 'main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ steps.bump.outputs.version }}" \
+            --title "v${{ steps.bump.outputs.version }}" \
+            --generate-notes
+
+  android:
+    needs: bump
+    if: "!contains(github.event.head_commit.message, '[skip android]')"
+    uses: ./.github/workflows/android-release.yml
+    secrets: inherit

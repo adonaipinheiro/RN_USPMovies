@@ -1,0 +1,79 @@
+name: Android Release
+
+on:
+  workflow_call:
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Runs as a job within the caller's workflow run (release.yml, after
+          # its "bump" job already pushed the bump commit), so the branch tip
+          # already has it by the time this checks out.
+          ref: ${{ github.ref_name }}
+
+      - name: Install dependencies
+        uses: ./.github/actions/install-deps
+
+      - name: Read app version
+        id: app
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      - name: Decode release keystore
+        working-directory: android/app
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          # No keystore secret configured yet (fresh fork, PR from a fork):
+          # skip, and android/app/build.gradle signs the release with the
+          # debug key so the build still produces an AAB.
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "::warning::ANDROID_KEYSTORE_BASE64 not set — release will be signed with the debug key."
+            exit 0
+          fi
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > release.keystore
+          cat > keystore.properties <<EOF
+          storeFile=release.keystore
+          storePassword=$ANDROID_KEYSTORE_PASSWORD
+          keyAlias=uspmovies-upload
+          keyPassword=$ANDROID_KEYSTORE_PASSWORD
+          EOF
+
+      - name: Build release bundle
+        working-directory: android
+        # Real devices only — x86/x86_64 are emulator-only ABIs and just
+        # double native build time for a release nobody installs there.
+        run: ./gradlew bundleRelease -PreactNativeArchitectures=armeabi-v7a,arm64-v8a
+
+      - name: Upload AAB as build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-${{ steps.app.outputs.version }}
+          path: android/app/build/outputs/bundle/release/app-release.aab
+
+      # --- Publicação no Google Play (desativada) -------------------------------
+      # Por enquanto o CD só compila o AAB assinado e sobe como artefato do run.
+      # Para publicar de verdade: criar o secret PLAY_STORE_SERVICE_ACCOUNT_JSON,
+      # fazer o 1º upload manual do AAB no Play Console (a API não cria listagem
+      # nova) e descomentar o passo abaixo.
+      #
+      # - name: Publish to Google Play
+      #   continue-on-error: true
+      #   uses: r0adkll/upload-google-play@v1
+      #   with:
+      #     serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}
+      #     packageName: com.rn_uspmovies
+      #     releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
+      #     track: ${{ github.ref_name == 'main' && 'production' || 'beta' }}
+      #     status: completed

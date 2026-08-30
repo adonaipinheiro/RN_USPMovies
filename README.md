@@ -82,6 +82,12 @@ You've successfully run and modified your React Native App. :partying_face:
 - If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
 - If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
 
+# CI/CD
+
+GitHub Actions, Android por enquanto: `ci.yml` roda lint + testes (cobertura
+100%) em cada PR, e `release.yml` sobe a versão e gera o `.aab` assinado a cada
+push em `main` / `develop`. Detalhes e secrets em [`docs/CI-CD.md`](docs/CI-CD.md).
+
 # Troubleshooting
 
 If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.

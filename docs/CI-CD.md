@@ -1,7 +1,7 @@
 # CI/CD
 
 Pipeline no GitHub Actions, **Android apenas** por enquanto (iOS entra depois,
-seguindo o mesmo desenho do repositório de referência `DomRing`).
+seguindo o mesmo desenho).
 
 > Cache: o `setup-node` guarda o `~/.cache/yarn` e o `setup-java` (`cache: gradle`)
 > guarda `~/.gradle/caches` — a partir da 2ª execução o `yarn install` e o

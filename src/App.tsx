@@ -3,7 +3,7 @@ import { StatusBar } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import { useAppTheme } from '@hooks/useAppTheme';
-import { Router } from '@routes';
+import { Router } from '@presentation/navigation';
 
 const queryClient = new QueryClient();
 

@@ -7,7 +7,7 @@ import { Movie } from '@domain/entities/movie';
 import { useAppTheme } from '@hooks/useAppTheme';
 import { MovieCard } from '@presentation/components/MovieCard';
 import { StateView } from '@presentation/components/StateView';
-import { coordinator } from '@routes/navigation';
+import { coordinator } from '@presentation/navigation/navigation';
 import { ThemeMode } from '@store/useThemeStore';
 import { useIsFavorite } from '@store/useFavoritesStore';
 import { useFavorites } from './hooks/useFavorites';

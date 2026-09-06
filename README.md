@@ -34,23 +34,28 @@ Toda tela de dados trata os estados **loading / data / empty / error**.
 
 ## Arquitetura
 
-Quatro camadas como pastas de 1º nível em `src/`, com a regra de dependência
-apontando para o domínio:
+Seis camadas explícitas como pastas de 1º nível em `src/`, com a regra de
+dependência apontando para o domínio:
 
 ```
-presentation ──► domain ◄── repositories ──► infra
+presentation ──► domain ◄── repository ──► data ──► infra
+                              ▲
+                              │
+                             di   (único lugar que conhece todas as camadas)
 ```
 
 | Camada | Papel | Conteúdo |
 |---|---|---|
-| `domain/` | regras e contratos, sem dependência de framework | `entities/movie.ts`, `repositories/*` (interfaces), `usecases/*` (`getPopularMovies`, `searchMovies`, `getMovieDetails`, `toggleFavorite`, `getFavorites`, `observeIsFavorite`) |
-| `repositories/` | implementam os contratos do domínio; conhecem "o que é um filme" | `moviesRepository.ts`, `favoritesRepository.ts`, `movieMapper.ts`, `dto/` |
-| `infra/` | encanamento técnico genérico, não sabe o que é um filme | `http/api.ts` (axios + interceptors), `storage/mmkv.ts` |
-| `presentation/` | UI e estado de tela | `screens/{Popular,Search,Detail,Favorites}` (View + `hooks/useX.ts` como ViewModel), `components/` (`MovieCard`, `FavButton`, `StateView`, `Button`) |
+| `domain/` | regras e contratos, sem dependência de framework | `entities/movie.ts`, `repositories/*` (interfaces `MoviesRepository`/`FavoritesRepository`), `usecases/*` (`getPopularMovies`, `searchMovies`, `getMovieDetails`, `toggleFavorite`, `getFavorites`, `observeIsFavorite`) |
+| `data/` | fontes de dados — já conhece "o que é um filme", mas não decide política | `remote/dto/movieDto.ts` (formato bruto da TMDB), `mapper/movieMapper.ts` (tradução DTO ↔ entidade de domínio) |
+| `infra/` | encanamento técnico 100% genérico, não sabe o que é um filme | `http/api.ts` (instância axios + interceptors), `storage/mmkv.ts` |
+| `repository/` | implementa os contratos do domínio, orquestrando uma ou mais fontes de `data` (ex.: fallback offline da F6) | `moviesRepository.ts`, `favoritesRepository.ts` |
+| `presentation/` | UI, estado de tela e navegação | `screens/{Popular,Search,Detail,Favorites}` (View + `hooks/useX.ts` como ViewModel), `components/` (`MovieCard`, `FavButton`, `StateView`, `Button`), `navigation/` (React Navigation v7 + `navigation/coordinator.ts`, `stack/`, `theme/`) |
 
-Transversais: `di/container.ts` (composition root), `store/` (Zustand — favoritos e
-tema, persistidos via MMKV), `routes/` (React Navigation v7 + `navigation/coordinator.ts`),
-`hooks/`, `utils/`.
+Transversal: `di/container.ts` — composition root, único ponto que liga
+`domain` → `repository` → `data` → `infra`. `store/` (Zustand — favoritos e
+tema, persistidos via MMKV), `hooks/` e `utils/` seguem soltos, consumidos
+pela presentation.
 
 ## Stack
 
@@ -60,7 +65,7 @@ tema, persistidos via MMKV), `routes/` (React Navigation v7 + `navigation/coordi
 - **axios** — camada `infra/http`
 - **React Navigation v7** — bottom tabs + native stack
 - **Jest** + **@testing-library/react-native** — testes
-- `StyleSheet` puro (sem Tailwind), tema light/dark, aliases `@domain`, `@infra`, `@repositories`, `@presentation`, `@store`, `@routes`, `@utils`, `@hooks`, `@di`
+- `StyleSheet` puro (sem Tailwind), tema light/dark, aliases `@domain`, `@data`, `@infra`, `@repository`, `@presentation`, `@store`, `@utils`, `@hooks`, `@di`
 
 ## Rodando o projeto
 
@@ -115,10 +120,10 @@ Detalhes, keystore e secrets em [`docs/CI-CD.md`](docs/CI-CD.md).
 ```
 src/
 ├── domain/          entities · repositories (interfaces) · usecases
-├── repositories/    implementações + mapper + dto
+├── data/            remote (dto) · mapper
 ├── infra/           http (axios) · storage (mmkv)
-├── presentation/    screens (View + hook/ViewModel) · components · state
-├── routes/          navigation (coordinator) · stack · theme
+├── repository/      implementações dos contratos do domínio
+├── presentation/    screens (View + hook/ViewModel) · components · navigation (coordinator · stack · theme)
 ├── store/           zustand (favoritos, tema)
 ├── di/              container (composition root)
 ├── hooks/ · utils/

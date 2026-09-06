@@ -1,7 +1,7 @@
-// Mock centralizado do @routes/navigation/navigation (o wrapper fino sobre o
+// Mock centralizado do @presentation/navigation/navigation/navigation (o wrapper fino sobre o
 // navigationRef do React Navigation), usado via:
 //
-//   jest.mock('@routes/navigation/navigation', () => ({
+//   jest.mock('@presentation/navigation/navigation/navigation', () => ({
 //     navigation: require('@mocks/navigationServiceMock').createNavigationServiceMock(),
 //   }));
 //

@@ -7,7 +7,7 @@ import { Movie, moviePosterUrl } from '@domain/entities/movie';
 import { useAppTheme } from '@hooks/useAppTheme';
 import { FavButton } from '@presentation/components/FavButton';
 import { StateView } from '@presentation/components/StateView';
-import { coordinator } from '@routes/navigation';
+import { coordinator } from '@presentation/navigation/navigation';
 import { useDetail } from './hooks/useDetail';
 import { createStyles } from './styles';
 

@@ -6,7 +6,7 @@ import { container } from '@di/container';
 import { Movie } from '@domain/entities/movie';
 import { UiState } from '@presentation/state/uiState';
 import { useIsFavorite } from '@store/useFavoritesStore';
-import type { MainStackParams } from '@routes/stack/MainStack.routes';
+import type { MainStackParams } from '@presentation/navigation/stack/MainStack.routes';
 
 type DetailRouteProp = RouteProp<MainStackParams, 'Detail'>;
 

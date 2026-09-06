@@ -4,15 +4,14 @@
     "moduleSuffixes": [".ios", ".android", ".native", ""],
     "paths": {
       "@domain/*": ["./src/domain/*"],
+      "@data/*": ["./src/data/*"],
       "@infra/*": ["./src/infra/*"],
-      "@repositories/*": ["./src/repositories/*"],
+      "@repository/*": ["./src/repository/*"],
+      "@di/*": ["./src/di/*"],
       "@presentation/*": ["./src/presentation/*"],
       "@store/*": ["./src/store/*"],
-      "@routes": ["./src/routes/index.ts"],
-      "@routes/*": ["./src/routes/*"],
       "@utils/*": ["./src/utils/*"],
       "@hooks/*": ["./src/hooks/*"],
-      "@di/*": ["./src/di/*"],
       "@mocks/*": ["./src/__tests__/__mocks__/*"]
     }
   },

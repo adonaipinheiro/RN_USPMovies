@@ -4,7 +4,7 @@ import { FavoritesScreen } from '@presentation/screens/Favorites';
 import { container } from '@di/container';
 import { useFavoritesStore } from '@store/useFavoritesStore';
 import { useThemeStore } from '@store/useThemeStore';
-import { coordinator } from '@routes/navigation';
+import { coordinator } from '@presentation/navigation/navigation';
 import { createMovie } from '@mocks/movieFixture';
 
 jest.mock('@di/container', () => ({

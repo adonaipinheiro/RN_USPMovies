@@ -27,13 +27,13 @@ module.exports = {
     // lógica de runtime para cobrir (o contrato já é validado pelo
     // typecheck e pelos testes de quem os implementa/consome).
     '!src/domain/repositories/**',
-    '!src/repositories/dto/**',
+    '!src/data/remote/dto/**',
     '!src/presentation/components/Button/index.ts',
     '!src/presentation/components/Button/types.ts',
     '!src/presentation/screens/index.ts',
     '!src/presentation/state/uiState.ts',
-    '!src/routes/index.ts',
-    '!src/routes/navigation/index.ts',
+    '!src/presentation/navigation/index.ts',
+    '!src/presentation/navigation/navigation/index.ts',
   ],
   coverageThreshold: {
     global: {

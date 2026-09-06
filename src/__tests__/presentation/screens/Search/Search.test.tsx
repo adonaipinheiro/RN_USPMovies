@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { SearchScreen } from '@presentation/screens/Search';
 import { container } from '@di/container';
-import { coordinator } from '@routes/navigation';
+import { coordinator } from '@presentation/navigation/navigation';
 import { createMovie } from '@mocks/movieFixture';
 import { createQueryClientWrapper } from '@mocks/queryClientWrapper';
 

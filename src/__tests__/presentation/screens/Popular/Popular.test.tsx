@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { PopularScreen } from '@presentation/screens/Popular';
 import { container } from '@di/container';
-import { coordinator } from '@routes/navigation';
+import { coordinator } from '@presentation/navigation/navigation';
 import { createMovie } from '@mocks/movieFixture';
 import { createQueryClientWrapper } from '@mocks/queryClientWrapper';
 

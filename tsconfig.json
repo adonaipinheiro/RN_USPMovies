@@ -16,5 +16,7 @@
     }
   },
   "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["**/node_modules", "**/Pods"]
+  // e2e/ tem tsconfig.json próprio (globais do Detox, como `expect`, colidem
+  // com os globais do Jest usados pelos testes unitários em __tests__/).
+  "exclude": ["**/node_modules", "**/Pods", "e2e"]
 }

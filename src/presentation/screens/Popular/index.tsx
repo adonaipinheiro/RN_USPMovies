@@ -37,7 +37,9 @@ export function PopularScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Text style={styles.title}>Populares</Text>
+      <Text style={styles.title} accessibilityRole="header">
+        Populares
+      </Text>
       <StateView state={state} onRetry={reload}>
         {(movies: Movie[]) => (
           <FlatList
@@ -48,6 +50,7 @@ export function PopularScreen() {
             contentContainerStyle={styles.listContent}
             onEndReached={loadMore}
             onEndReachedThreshold={0.5}
+            testID="popular-list"
           />
         )}
       </StateView>

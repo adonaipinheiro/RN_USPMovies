@@ -20,8 +20,15 @@ export type MainTabsParams = {
 
 const Tab = createBottomTabNavigator<MainTabsParams>();
 
+// camada: presentation (navegação) — o emoji é puramente decorativo (o
+// tabBarLabel ao lado já diz "Populares"/"Buscar"/"Favoritos"); escondê-lo do
+// leitor de tela evita que ele anuncie o símbolo duas vezes por aba.
 function TabIcon({ symbol, color }: { symbol: string; color: string }) {
-  return <Text style={{ fontSize: 18, color }}>{symbol}</Text>;
+  return (
+    <Text style={{ fontSize: 18, color }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      {symbol}
+    </Text>
+  );
 }
 
 export function MainTabs() {
@@ -41,6 +48,7 @@ export function MainTabs() {
         component={PopularScreen}
         options={{
           tabBarLabel: 'Populares',
+          tabBarAccessibilityLabel: 'Aba Populares, filmes em alta',
           tabBarIcon: ({ color }) => <TabIcon symbol="🔥" color={color} />,
         }}
       />
@@ -49,6 +57,7 @@ export function MainTabs() {
         component={SearchScreen}
         options={{
           tabBarLabel: 'Buscar',
+          tabBarAccessibilityLabel: 'Aba Buscar filmes',
           tabBarIcon: ({ color }) => <TabIcon symbol="🔍" color={color} />,
         }}
       />
@@ -57,6 +66,7 @@ export function MainTabs() {
         component={FavoritesScreen}
         options={{
           tabBarLabel: 'Favoritos',
+          tabBarAccessibilityLabel: 'Aba Favoritos',
           tabBarIcon: ({ color }) => <TabIcon symbol="♥" color={color} />,
         }}
       />

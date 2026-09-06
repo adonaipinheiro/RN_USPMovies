@@ -88,6 +88,51 @@ GitHub Actions, Android por enquanto: `ci.yml` roda lint + testes (cobertura
 100%) em cada PR, e `release.yml` sobe a versão e gera o `.aab` assinado a cada
 push em `main` / `develop`. Detalhes e secrets em [`docs/CI-CD.md`](docs/CI-CD.md).
 
+# Testes E2E (Detox)
+
+Além da suíte unitária/componente (`yarn test`), o projeto tem testes de
+ponta a ponta com [Detox](https://wix.github.io/Detox/) em `e2e/`, rodando o
+app de verdade (build nativo) num emulador/simulador — sem mocks.
+
+```sh
+# Android (precisa de um emulador já criado no Android Studio — ajuste o
+# avdName em .detoxrc.js pro nome do seu)
+yarn e2e:build:android
+yarn e2e:test:android
+
+# iOS — precisa primeiro criar um Test Target no Xcode (uma vez só: File →
+# New → Target → "UI Testing Bundle"), passo que o Detox não automatiza e
+# não pode ser feito fora de um Mac com Xcode
+yarn e2e:build:ios
+yarn e2e:test:ios
+```
+
+Como os testes rodam o app de verdade, o `.env` com `TMDB_ACCESS_TOKEN`
+precisa estar configurado (ver "Getting Started" acima) — sem token válido, a
+tela de Populares cai em erro e os specs que dependem dela falham.
+
+Os specs selecionam elementos por `testID` (`by.id(...)`) sempre que
+possível, e por texto visível (`by.text(...)`) pra navegação entre abas —
+os mesmos `testID`/`accessibilityLabel` adicionados para acessibilidade (ver
+abaixo) servem de referência estável pros testes, em vez de duplicar
+seletores.
+
+# Acessibilidade
+
+Todo elemento interativo (botões, card de filme, campo de busca, abas,
+toggle de tema) tem `accessibilityRole`/`accessibilityLabel`/`accessibilityState`
+adequados para VoiceOver (iOS) e TalkBack (Android). Dois pontos que valem
+a leitura do código como referência:
+
+- `MovieCard` agrupa pôster/título/nota num único elemento de acessibilidade
+  (um card = um anúncio de leitor de tela, não fragmentos soltos) e expõe o
+  favoritar aninhado como `accessibilityAction` — a forma correta de lidar
+  com um botão dentro de outro elemento tocável em React Native, já que um
+  `Pressable` aninhado dentro de um container `accessible` fica inalcançável
+  por navegação linear do leitor de tela.
+- `StateView` usa `accessibilityLiveRegion="polite"` nos estados vazio/erro,
+  pra anunciar a mudança sozinho, sem o usuário precisar "descobrir" a tela.
+
 # Troubleshooting
 
 If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.

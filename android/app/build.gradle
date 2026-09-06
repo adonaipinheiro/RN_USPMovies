@@ -97,7 +97,14 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 5
         versionName "0.3.0"
+        // E2E (Detox): roda a suíte instrumentada empacotada junto do APK de
+        // teste (assembleAndroidTest) — ver DetoxTest.kt e .detoxrc.js.
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
     }
+    // E2E (Detox): contra qual buildType o APK de teste (androidTest) roda.
+    // `.detoxrc.js` passa -DtestBuildType=debug/release no comando do gradle.
+    testBuildType System.getProperty('testBuildType', 'debug')
     signingConfigs {
         debug {
             storeFile file('debug.keystore')
@@ -138,4 +145,8 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+
+    // E2E (Detox): biblioteca nativa que o app de teste (androidTest) usa
+    // pra receber comandos do runner Jest do lado de fora do device.
+    androidTestImplementation('com.wix:detox:+')
 }

@@ -7,13 +7,20 @@ import { useAppTheme } from '@hooks/useAppTheme';
 import { ButtonProps } from './types';
 import { createStyles } from './styles';
 
-export function Button({ label, onPress }: ButtonProps) {
+export function Button({ label, onPress, testID }: ButtonProps) {
   const { colors } = useAppTheme();
   const styles = createStyles(colors);
 
   return (
     <View style={styles.wrapper}>
-      <Pressable onPress={onPress} android_ripple={{ color: colors.border }} style={styles.button}>
+      <Pressable
+        onPress={onPress}
+        android_ripple={{ color: colors.border }}
+        style={styles.button}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        testID={testID}
+      >
         <Text style={styles.label}>{label}</Text>
       </Pressable>
     </View>

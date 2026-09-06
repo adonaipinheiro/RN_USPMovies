@@ -1,4 +1,11 @@
-// camada: infra — plumbing técnica genérica, não conhece o domínio.
+// camada: infra — plumbing técnica 100% genérica: instância axios com
+// baseURL/headers/interceptors. Não sabe o que é um "filme" nem conhece
+// endpoints específicos da TMDB (isso é responsabilidade de @data) — por
+// isso nada deste arquivo foi movido para data/ na separação em 6 camadas.
+// O único dado específico do produto aqui é a própria baseURL da TMDB,
+// necessária para o client funcionar; os endpoints (/movie/popular,
+// /search/movie, etc.) ficam no repository, que hoje atua também como fonte
+// de dados remota.
 
 import axios from 'axios';
 import { TMDB_ACCESS_TOKEN } from '@env';

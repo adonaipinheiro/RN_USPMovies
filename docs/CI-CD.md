@@ -1,7 +1,7 @@
 # CI/CD
 
 Pipeline no GitHub Actions, **Android apenas** por enquanto (iOS entra depois,
-seguindo o mesmo desenho do repositório de referência `DomRing`).
+seguindo o mesmo desenho).
 
 ## Workflows
 

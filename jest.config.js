@@ -12,10 +12,12 @@ module.exports = {
     '/node_modules/',
     '<rootDir>/src/__tests__/__mocks__/',
     '<rootDir>/src/__tests__/setup/',
-    // specs *.e2e.ts rodam sob o Detox (e2e/jest.config.js), não aqui — têm
-    // seus próprios globais (device, element, expect...) que colidiriam com
-    // os do Jest/testing-library usados nos testes unitários.
-    '<rootDir>/e2e/',
+    // specs *.e2e.ts rodam sob o Detox (src/__tests__/e2e/jest.config.js),
+    // não aqui — têm seus próprios globais (device, element, expect...) que
+    // colidiriam com os do Jest/testing-library usados nos testes unitários.
+    // O testMatch padrão do Jest casa **/__tests__/**, então sem este ignore
+    // os specs E2E seriam varridos pela suíte unitária.
+    '<rootDir>/src/__tests__/e2e/',
   ],
   setupFilesAfterEnv: [
     '<rootDir>/src/__tests__/setup/reactQuery.setup.ts',

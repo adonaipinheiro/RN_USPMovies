@@ -147,6 +147,10 @@ dependencies {
     }
 
     // E2E (Detox): biblioteca nativa que o app de teste (androidTest) usa
-    // pra receber comandos do runner Jest do lado de fora do device.
+    // pra receber comandos do runner Jest do lado de fora do device. O AAR
+    // vem do repositório Maven local em node_modules/detox/Detox-android
+    // (ver android/build.gradle) e já traz espresso/uiautomator/androidx.test
+    // transitivamente; só o JUnit 4 puro precisa ser declarado aqui.
     androidTestImplementation('com.wix:detox:+')
+    androidTestImplementation('junit:junit:4.13.2')
 }

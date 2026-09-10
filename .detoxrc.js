@@ -7,10 +7,20 @@ module.exports = {
   testRunner: {
     args: {
       $0: 'jest',
-      config: 'e2e/jest.config.js',
+      config: 'src/__tests__/e2e/jest.config.js',
     },
     jest: {
       setupTimeout: 120000,
+    },
+  },
+  // Artefatos (screenshots/vídeo/logs) só quando um teste falha — o suficiente
+  // pra depurar sem encher o disco a cada execução.
+  artifacts: {
+    rootDir: 'artifacts',
+    plugins: {
+      log: 'failing',
+      screenshot: 'failing',
+      video: 'none',
     },
   },
   apps: {
@@ -19,12 +29,23 @@ module.exports = {
       binaryPath: 'ios/build/Build/Products/Debug-iphonesimulator/RN_USPMovies.app',
       build:
         'xcodebuild -workspace ios/RN_USPMovies.xcworkspace -scheme RN_USPMovies ' +
-        '-configuration Debug -sdk iphonesimulator -derivedDataPath ios/build',
+        '-configuration Debug -sdk iphonesimulator -derivedDataPath ios/build ' +
+        'CODE_SIGNING_ALLOWED=NO',
+    },
+    'ios.release': {
+      type: 'ios.app',
+      binaryPath: 'ios/build/Build/Products/Release-iphonesimulator/RN_USPMovies.app',
+      build:
+        'xcodebuild -workspace ios/RN_USPMovies.xcworkspace -scheme RN_USPMovies ' +
+        '-configuration Release -sdk iphonesimulator -derivedDataPath ios/build ' +
+        'CODE_SIGNING_ALLOWED=NO',
     },
     'android.debug': {
       type: 'android.apk',
       binaryPath: 'android/app/build/outputs/apk/debug/app-debug.apk',
       build: 'cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug',
+      // O app em debug carrega o bundle do Metro rodando no host: sem esse
+      // reverse o emulador não enxerga o localhost:8081 da máquina.
       reversePorts: [8081],
     },
     'android.release': {
@@ -37,16 +58,16 @@ module.exports = {
     simulator: {
       type: 'ios.simulator',
       device: {
-        type: 'iPhone 15',
+        // Único simulador instalado nesta máquina (xcrun simctl list devices).
+        type: 'iPhone 17',
       },
     },
     emulator: {
       type: 'android.emulator',
       device: {
-        // Ajuste pro nome do AVD que você tem criado localmente
-        // (Android Studio → Device Manager). Rode `emulator -list-avds`
-        // pra ver os nomes disponíveis.
-        avdName: 'Pixel_3a_API_34',
+        // AVD criado localmente no Android Studio. Rode `emulator -list-avds`
+        // pra conferir o nome se trocar de máquina.
+        avdName: 'Pixel_10',
       },
     },
   },
@@ -54,6 +75,10 @@ module.exports = {
     'ios.sim.debug': {
       device: 'simulator',
       app: 'ios.debug',
+    },
+    'ios.sim.release': {
+      device: 'simulator',
+      app: 'ios.release',
     },
     'android.emu.debug': {
       device: 'emulator',

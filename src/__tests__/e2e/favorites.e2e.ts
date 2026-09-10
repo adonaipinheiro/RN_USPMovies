@@ -19,7 +19,13 @@ describe('Favoritos', () => {
     await waitFor(firstFavButton).toBeVisible().withTimeout(15000);
     await firstFavButton.tap();
 
-    await element(by.text('Favoritos')).tap();
+    // Mesma razão do spec de busca: aba por testID, e toExist (não
+    // toBeVisible) porque a view do tabBarTestID cobre também o inset de
+    // gestos e não passa na régua de 75% do Detox.
+    await waitFor(element(by.id('tab-favorites')))
+      .toExist()
+      .withTimeout(15000);
+    await element(by.id('tab-favorites')).tap();
 
     await waitFor(element(by.id('favorites-list')))
       .toBeVisible()

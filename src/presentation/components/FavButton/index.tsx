@@ -8,9 +8,10 @@ import { createStyles } from './styles';
 interface FavButtonProps {
   isFavorite: boolean;
   onToggle: () => void;
+  testID?: string;
 }
 
-export function FavButton({ isFavorite, onToggle }: FavButtonProps) {
+export function FavButton({ isFavorite, onToggle, testID }: FavButtonProps) {
   const { colors } = useAppTheme();
   const styles = createStyles(colors);
 
@@ -19,7 +20,12 @@ export function FavButton({ isFavorite, onToggle }: FavButtonProps) {
       onPress={onToggle}
       hitSlop={8}
       style={styles.button}
+      accessibilityRole="button"
       accessibilityLabel={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+      // camada: presentation — accessibilityState.selected reporta o "ligado/
+      // desligado" do toggle pro leitor de tela (ex.: "Favorito, selecionado").
+      accessibilityState={{ selected: isFavorite }}
+      testID={testID ?? 'fav-button'}
     >
       <Text style={[styles.icon, isFavorite && styles.iconActive]}>{isFavorite ? '♥' : '♡'}</Text>
     </Pressable>

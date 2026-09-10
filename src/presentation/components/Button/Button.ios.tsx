@@ -13,12 +13,18 @@ export const resolvePressableStyle =
   (styles: ReturnType<typeof createStyles>) =>
   ({ pressed }: { pressed: boolean }) => [styles.button, pressed && styles.pressed];
 
-export function Button({ label, onPress }: ButtonProps) {
+export function Button({ label, onPress, testID }: ButtonProps) {
   const { colors } = useAppTheme();
   const styles = createStyles(colors);
 
   return (
-    <Pressable onPress={onPress} style={resolvePressableStyle(styles)}>
+    <Pressable
+      onPress={onPress}
+      style={resolvePressableStyle(styles)}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      testID={testID}
+    >
       <Text style={styles.label}>{label}</Text>
     </Pressable>
   );

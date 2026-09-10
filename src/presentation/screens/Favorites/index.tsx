@@ -42,7 +42,7 @@ function ThemeToggle() {
   const styles = createStyles(useAppTheme().colors);
 
   return (
-    <View style={styles.themeRow}>
+    <View style={styles.themeRow} accessibilityRole="tablist">
       {THEME_OPTIONS.map(option => {
         const active = option.mode === mode;
         return (
@@ -50,6 +50,10 @@ function ThemeToggle() {
             key={option.mode}
             onPress={() => setMode(option.mode)}
             style={[styles.themeOption, active && styles.themeOptionActive]}
+            accessibilityRole="radio"
+            accessibilityLabel={`Tema ${option.label}`}
+            accessibilityState={{ selected: active }}
+            testID={`theme-${option.mode}`}
           >
             <Text style={[styles.themeOptionText, active && styles.themeOptionTextActive]}>{option.label}</Text>
           </Pressable>
@@ -66,7 +70,9 @@ export function FavoritesScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Text style={styles.title}>Favoritos</Text>
+      <Text style={styles.title} accessibilityRole="header">
+        Favoritos
+      </Text>
       <StateView state={state} emptyMessage="Favorite um filme para vê-lo aqui.">
         {(movies: Movie[]) => (
           <FlatList
@@ -75,6 +81,7 @@ export function FavoritesScreen() {
             renderItem={({ item }) => <FavoriteMovieItem movie={item} onToggleFavorite={toggleFavorite} />}
             ItemSeparatorComponent={() => <View style={styles.separator} />}
             contentContainerStyle={styles.listContent}
+            testID="favorites-list"
           />
         )}
       </StateView>

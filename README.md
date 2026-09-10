@@ -3,7 +3,8 @@
 [![CI](https://github.com/adonaipinheiro/RN_USPMovies/actions/workflows/ci.yml/badge.svg)](https://github.com/adonaipinheiro/RN_USPMovies/actions/workflows/ci.yml)
 [![Release](https://github.com/adonaipinheiro/RN_USPMovies/actions/workflows/release.yml/badge.svg)](https://github.com/adonaipinheiro/RN_USPMovies/actions/workflows/release.yml)
 ![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)
-![Tests](https://img.shields.io/badge/tests-109_passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-111_passing-brightgreen)
+![E2E](https://img.shields.io/badge/E2E-Detox-9c27b0)
 ![React Native](https://img.shields.io/badge/React_Native-0.87-blue)
 ![React](https://img.shields.io/badge/React-19-149eca)
 ![TypeScript](https://img.shields.io/badge/TypeScript-6.x-3178c6)
@@ -64,7 +65,8 @@ pela presentation.
 - **Zustand v5** — client state (favoritos, tema) com persistência **MMKV**
 - **axios** — camada `infra/http`
 - **React Navigation v7** — bottom tabs + native stack
-- **Jest** + **@testing-library/react-native** — testes
+- **Jest** + **@testing-library/react-native** — testes unitários e de componente
+- **Detox 20** — testes end-to-end no app real (emulador/simulador)
 - `StyleSheet` puro (sem Tailwind), tema light/dark, aliases `@domain`, `@data`, `@infra`, `@repository`, `@presentation`, `@store`, `@utils`, `@hooks`, `@di`
 
 ## Rodando o projeto
@@ -92,15 +94,80 @@ depois `yarn ios`), mas ainda **não tem CI**.
 
 ## Testes
 
+### Unitários e de componente (Jest)
+
 ```sh
 yarn test              # roda a suíte
 yarn test --coverage   # com cobertura
 ```
 
-**35 suítes · 109 testes · 100% de cobertura.** O `jest.config.js` trava o
+**35 suítes · 111 testes · 100% de cobertura.** O `jest.config.js` trava o
 `coverageThreshold` em 100% (branches/functions/lines/statements) — a suíte
 reprova se a cobertura cair. Os testes espelham `src/` 1:1 em `src/__tests__/`,
 com mocks centralizados em `src/__tests__/__mocks__/` (alias `@mocks`).
+
+### End-to-end (Detox)
+
+Os specs em `src/__tests__/e2e/` rodam o app **de verdade** (build nativo) num emulador ou
+simulador, sem mock nenhum: cobrem F1+F3 (`popular.e2e.ts`), F2 com o debounce
+e o estado vazio (`search.e2e.ts`) e F4+F5 (`favorites.e2e.ts`).
+
+```sh
+# Android — com o Metro rodando (yarn start) em outro terminal
+yarn e2e:build:android
+yarn e2e:test:android
+
+# iOS
+yarn e2e:build:ios
+yarn e2e:test:ios
+```
+
+Pré-requisito só do iOS: o Detox usa o
+[`applesimutils`](https://github.com/wix/AppleSimulatorUtils) pra falar com o
+simulador — `brew tap wix/brew && brew install applesimutils` (o Homebrew pode
+pedir um `brew trust wix/brew` antes). No Android não há equivalente: o
+`adb`/`emulator` do SDK bastam.
+
+Detalhes que valem saber antes de rodar:
+
+- O device é escolhido no `.detoxrc.js`. Hoje aponta pro AVD **`Pixel_10`**
+  (Android) e pro simulador **`iPhone 17`**. Em outra máquina, ajuste com
+  `emulator -list-avds` e `xcrun simctl list devices available`.
+- Como o app é o real, o `.env` com `TMDB_ACCESS_TOKEN` **precisa estar
+  configurado** — sem token válido a tela de Populares cai em erro e os specs
+  que dependem dela falham.
+- Em debug o bundle vem do Metro, então **o Metro precisa estar no ar**; o
+  Detox faz o `adb reverse` da porta 8081 sozinho (`reversePorts` no
+  `.detoxrc.js`).
+- Nenhum target extra no Xcode é necessário: o Detox 20 traz e gerencia o
+  próprio runner XCUITest, e no Android a ponte é o `DetoxTest.kt` em
+  `android/app/src/androidTest/`. O AAR nativo (`com.wix:detox`) não está em
+  repositório remoto — vem dentro do pacote npm, e o `android/build.gradle`
+  registra `node_modules/detox/Detox-android` como repositório Maven local.
+- Artefatos de falha (log + screenshot) caem em `artifacts/` (gitignored).
+
+Os specs selecionam elementos exclusivamente por `testID` (`by.id(...)`) — os
+mesmos `testID`/`accessibilityLabel` adicionados para acessibilidade servem de
+referência estável pros testes, em vez de duplicar seletores. As abas usam
+`tabBarTestID` (`tab-popular`/`tab-search`/`tab-favorites`) em vez do texto
+visível: o label "Buscar" também é o título da tela de busca, o que torna o
+matcher por texto ambíguo.
+
+## Acessibilidade
+
+Todo elemento interativo (botões, card de filme, campo de busca, abas, toggle de
+tema) tem `accessibilityRole`/`accessibilityLabel`/`accessibilityState`
+adequados para VoiceOver (iOS) e TalkBack (Android). Dois pontos que valem a
+leitura do código como referência:
+
+- **`MovieCard`** agrupa pôster/título/nota num único elemento de acessibilidade
+  (um card = um anúncio de leitor de tela, não fragmentos soltos) e expõe o
+  favoritar aninhado como `accessibilityAction` — a forma correta de lidar com
+  um botão dentro de outro elemento tocável em React Native, já que um
+  `Pressable` aninhado dentro de um container `accessible` fica inalcançável
+  pela navegação linear do leitor de tela.
+- **`StateView`** usa `accessibilityLiveRegion="polite"` nos estados vazio/erro,
+  pra anunciar a mudança sozinho, sem o usuário precisar "descobrir" a tela.
 
 ## CI/CD
 
@@ -112,6 +179,9 @@ GitHub Actions, **Android por enquanto**:
   dispara o build Android.
 - **`android-release.yml`** — `./gradlew bundleRelease` assinado, publica o
   `.aab` como artefato do run. Envio pro Google Play está pronto, porém comentado.
+
+A suíte E2E **não roda no CI** — exige emulador/simulador e um token TMDB
+válido; por enquanto é execução local.
 
 Detalhes, keystore e secrets em [`docs/CI-CD.md`](docs/CI-CD.md).
 
@@ -127,5 +197,7 @@ src/
 ├── store/           zustand (favoritos, tema)
 ├── di/              container (composition root)
 ├── hooks/ · utils/
-└── __tests__/       espelha src/ 1:1 · __mocks__/
+└── __tests__/       espelha src/ 1:1 · __mocks__/ · e2e/ (specs do Detox)
+
+.detoxrc.js          devices, apps e comandos de build do Detox
 ```

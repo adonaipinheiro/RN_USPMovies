@@ -18,4 +18,21 @@ buildscript {
     }
 }
 
+// E2E (Detox): o AAR nativo do Detox (com.wix:detox) não é publicado em
+// nenhum repositório remoto — ele vem dentro do pacote npm, como um
+// repositório Maven local em node_modules/detox/Detox-android. google() e
+// mavenCentral() já são adicionados pelo plugin do React Native.
+// `includeGroup` limita esse repositório ao grupo com.wix, pra não atrasar a
+// resolução de todas as outras dependências.
+allprojects {
+    repositories {
+        maven {
+            url("${rootDir}/../node_modules/detox/Detox-android")
+            content {
+                includeGroup "com.wix"
+            }
+        }
+    }
+}
+
 apply plugin: "com.facebook.react.rootproject"

@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "strict": true,
+    "types": ["node", "jest"],
+    "noEmit": true,
+    // Necessário: @types/jest e o global.d.ts do Detox declaram `expect`
+    // global com tipos diferentes — só entram em conflito porque o
+    // TypeScript valida a consistência entre arquivos .d.ts; skipLibCheck
+    // pula essa checagem (não afeta o typecheck dos nossos specs).
+    "skipLibCheck": true
+  },
+  "include": ["**/*.ts"]
+}

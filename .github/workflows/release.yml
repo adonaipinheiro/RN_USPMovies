@@ -67,3 +67,40 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[skip android]')"
     uses: ./.github/workflows/android-release.yml
     secrets: inherit
+
+  # Devolve para a develop o que a main acabou de publicar. Sem isto, a develop
+  # (patch) e a main (minor) divergem em package.json / build.gradle e toda
+  # promoção develop -> main chega conflitada. A lógica — inclusive a regra de
+  # quando NÃO resolver sozinho — está em .github/scripts/back-merge.sh.
+  back-merge:
+    needs: bump
+    if: github.ref_name == 'main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          # O script precisa do histórico das duas branches para fazer o merge.
+          fetch-depth: 0
+
+      - name: Setup Node
+        # Só para ter node e npm (o script lê a versão do package.json e usa
+        # `npm pkg set`). Não instala as dependências do projeto: este job não
+        # builda nem testa nada.
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Back-merge main into develop
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .github/scripts/back-merge.sh

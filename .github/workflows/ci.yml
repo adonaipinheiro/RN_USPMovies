@@ -13,9 +13,16 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   javascript:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Needed by the coverage comment step below.
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,3 +37,86 @@ jobs:
         # jest.config.js pins coverageThreshold at 100% — this step fails the
         # build if coverage drops below it.
         run: yarn test --coverage --ci
+
+      # Runs even when the tests fail: a run that dropped below the threshold is
+      # exactly when you want to see which files fell.
+      - name: Coverage summary
+        if: always()
+        run: |
+          if [ ! -f coverage/coverage-summary.json ]; then
+            echo "Sem coverage-summary.json — os testes não chegaram a rodar." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          node .github/scripts/coverage-report.js >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Comment coverage on PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'coverage/coverage-summary.json';
+            if (!fs.existsSync(path)) return;
+
+            const { execFileSync } = require('child_process');
+            const body = execFileSync('node', ['.github/scripts/coverage-report.js'], {
+              encoding: 'utf8',
+            });
+
+            // Marcador invisível: o comentário é atualizado a cada push em vez
+            // de virar uma pilha de comentários no PR.
+            const marker = '<!-- coverage-report -->';
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number,
+            });
+            const existing = comments.find(
+              c => c.user.type === 'Bot' && c.body.includes(marker),
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner, repo, comment_id: existing.id, body: marker + '\n' + body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number, body: marker + '\n' + body,
+              });
+            }
+
+      # O relatório HTML navegável, guardado em todo run (inclusive de PR, onde
+      # o Pages não é publicado).
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/lcov-report
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Package coverage report for Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: coverage/lcov-report
+
+  # Publica o relatório em https://adonaipinheiro.github.io/RN_USPMovies/.
+  # Só a partir da main: publicar das duas branches faria uma sobrescrever a
+  # outra, e o que o badge do README promete é o estado publicado.
+  publish-coverage:
+    needs: javascript
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

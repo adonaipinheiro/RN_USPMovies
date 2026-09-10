@@ -325,7 +325,7 @@ Escreva um docs/CI-CD.md explicando o fluxo e quais secrets precisam existir.
 
 ## Armadilhas reais
 
-Sete erros que aconteceram **de verdade** durante a construção deste projeto.
+Oito erros que aconteceram **de verdade** durante a construção deste projeto.
 Valem mais que o código pronto: são o tipo de coisa que nenhum tutorial mostra.
 
 | # | Sintoma | Causa raiz | O que ensina |
@@ -337,6 +337,7 @@ Valem mais que o código pronto: são o tipo de coisa que nenhum tutorial mostra
 | 5 | `toBeVisible()` falha numa tela visivelmente correta | O Detox exige **75%** do elemento na tela, e o teclado cobria metade da lista | Leia a régua da ferramenta antes de concluir que o app está errado. O screenshot do artefato provou que a UI estava certa. |
 | 6 | `by.text('Buscar')` ora acha, ora não | É ao mesmo tempo o label da aba e o título da tela — e o tap corria com o reload | Seletor por texto é ambíguo e frágil. `testID` é contrato. |
 | 7 | Jest morre na largada com erro do watchman | Diretório de estado do watchman sem permissão | `watchman: false` no config. Nem todo erro vermelho é do seu código. |
+| 8 | Um PR não roda CI nenhum — sem erro, sem check, sem nada | A mensagem do commit **explicava** o marcador `[skip ci]` em prosa, e o GitHub leu o token literal | Documentar um marcador o aciona. Ferramenta que lê texto livre em busca de diretiva não distingue uso de menção. |
 
 E uma que é de arquitetura, não de ferramenta:
 

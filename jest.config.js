@@ -23,6 +23,11 @@ module.exports = {
     '<rootDir>/src/__tests__/setup/reactQuery.setup.ts',
     '<rootDir>/src/__tests__/setup/safeArea.setup.ts',
   ],
+  // lcov gera tanto o lcov.info quanto o relatório HTML em coverage/lcov-report,
+  // que o CI publica no GitHub Pages; json-summary gera o coverage-summary.json,
+  // de onde saem os números do resumo do run e do comentário no PR. 'text'
+  // continua aí só pela tabela no terminal, no uso local.
+  coverageReporters: ['lcov', 'text', 'json-summary'],
   collectCoverage: false,
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',

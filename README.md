@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/adonaipinheiro/RN_USPMovies/actions/workflows/ci.yml/badge.svg)](https://github.com/adonaipinheiro/RN_USPMovies/actions/workflows/ci.yml)
 [![Release](https://github.com/adonaipinheiro/RN_USPMovies/actions/workflows/release.yml/badge.svg)](https://github.com/adonaipinheiro/RN_USPMovies/actions/workflows/release.yml)
-![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)
+[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://adonaipinheiro.github.io/RN_USPMovies/)
 ![Tests](https://img.shields.io/badge/tests-111_passing-brightgreen)
 ![E2E](https://img.shields.io/badge/E2E-Detox-9c27b0)
 ![React Native](https://img.shields.io/badge/React_Native-0.87-blue)
@@ -109,6 +109,12 @@ yarn test --coverage   # com cobertura
 `coverageThreshold` em 100% (branches/functions/lines/statements) — a suíte
 reprova se a cobertura cair. Os testes espelham `src/` 1:1 em `src/__tests__/`,
 com mocks centralizados em `src/__tests__/__mocks__/` (alias `@mocks`).
+
+O relatório navegável fica publicado em
+[adonaipinheiro.github.io/RN_USPMovies](https://adonaipinheiro.github.io/RN_USPMovies/)
+(atualizado a cada push na `main`), e todo run do CI — inclusive de PR — guarda o
+HTML no artefato `coverage-report`. Em pull request, um comentário com a tabela
+de cobertura é postado e atualizado a cada push.
 
 ### End-to-end (Detox)
 

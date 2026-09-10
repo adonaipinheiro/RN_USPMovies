@@ -11,10 +11,11 @@ seguindo o mesmo desenho).
 
 | Arquivo | Gatilho | O que faz |
 | --- | --- | --- |
-| `.github/workflows/ci.yml` | `pull_request` e push em `main` / `develop` | `yarn lint` + `yarn test --coverage --ci`. O `coverageThreshold` de 100% em `jest.config.js` reprova o build se a cobertura cair. |
+| `.github/workflows/ci.yml` | `pull_request` e push em `main` / `develop` | `yarn lint` + `yarn test --coverage --ci`, e publica a cobertura (ver abaixo). O `coverageThreshold` de 100% em `jest.config.js` reprova o build se a cobertura cair. |
 | `.github/workflows/release.yml` | push em `main` / `develop` | Orquestra o release: sobe a versão e chama o build Android. |
 | `.github/workflows/android-release.yml` | `workflow_call` (só via `release.yml`) | Compila o `.aab` assinado e publica como artefato do run. O passo de envio pro Google Play está **comentado** — reativar depois. |
 | `.github/actions/install-deps/` | — | Composite action reutilizada por todos: `setup-node@22` + `yarn install --frozen-lockfile` com cache. |
+| `.github/scripts/coverage-report.js` | — | Node puro, sem dependências: transforma o `coverage-summary.json` do Jest na tabela em Markdown usada pelo Job Summary e pelo comentário no PR. |
 
 ## Fluxo do `release.yml`
 
@@ -27,6 +28,33 @@ seguindo o mesmo desenho).
    _Publish to Google Play_ está comentado por enquanto — só buildamos o AAB.
 
 Coloque `[skip android]` na mensagem do commit para pular o build da plataforma.
+
+## Publicação da cobertura
+
+O `jest.config.js` usa três reporters: `lcov` (gera o `lcov.info` e o relatório
+HTML em `coverage/lcov-report`), `text` (a tabela no terminal, uso local) e
+`json-summary` (o `coverage-summary.json`, de onde saem os números do CI).
+
+Com isso o `ci.yml` faz três coisas, em todo run:
+
+1. **Job Summary** — tabela de cobertura na própria página do run. Roda com
+   `if: always()`: um run que caiu abaixo do threshold é justamente quando
+   interessa ver quais arquivos caíram.
+2. **Comentário no PR** — o mesmo texto, postado via `actions/github-script`
+   (sem action de terceiro). O comentário carrega um marcador HTML invisível e é
+   **atualizado** a cada push, em vez de virar uma pilha de comentários.
+   Exige `pull-requests: write` no job.
+3. **Artefato `coverage-report`** — o HTML navegável, guardado por 14 dias em
+   qualquer run, inclusive de PR.
+
+E, só em push na `main`, o job `publish-coverage` manda o HTML para o **GitHub
+Pages**: <https://adonaipinheiro.github.io/RN_USPMovies/>. Publicar também da
+`develop` faria uma branch sobrescrever a outra — o badge do README aponta para
+o estado publicado, então a fonte é a `main`.
+
+O Pages está configurado com `build_type: workflow` (deploy pelo Actions, sem
+branch `gh-pages`), o que exige as permissões `pages: write` e `id-token: write`
+no job de deploy.
 
 ## Assinatura (signing)
 

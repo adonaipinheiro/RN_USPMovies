@@ -95,8 +95,8 @@ android {
         applicationId "com.rn_uspmovies"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 8
-        versionName "0.4.1"
+        versionCode 9
+        versionName "0.5.0"
         // E2E (Detox): roda a suíte instrumentada empacotada junto do APK de
         // teste (assembleAndroidTest) — ver DetoxTest.kt e .detoxrc.js.
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

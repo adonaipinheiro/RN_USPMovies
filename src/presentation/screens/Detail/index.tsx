@@ -19,7 +19,13 @@ export function DetailScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.backButton} onPress={coordinator.goBack}>
+        <Text
+          style={styles.backButton}
+          onPress={coordinator.goBack}
+          accessibilityRole="button"
+          accessibilityLabel="Voltar"
+          testID="back-button"
+        >
           ‹ Voltar
         </Text>
         <FavButton isFavorite={isFavorite} onToggle={toggleFavorite} />
@@ -29,17 +35,30 @@ export function DetailScreen() {
           const posterUrl = moviePosterUrl(movie);
           return (
             <ScrollView contentContainerStyle={styles.content}>
-              {posterUrl ? <Image source={{ uri: posterUrl }} style={styles.poster} resizeMode="cover" /> : null}
+              {posterUrl ? (
+                <Image
+                  source={{ uri: posterUrl }}
+                  style={styles.poster}
+                  resizeMode="cover"
+                  accessibilityLabel={`Pôster de ${movie.title}`}
+                />
+              ) : null}
               <View style={styles.infoCard}>
-                <Text style={styles.movieTitle}>{movie.title}</Text>
-                <View style={styles.metaRow}>
+                <Text style={styles.movieTitle} accessibilityRole="header">
+                  {movie.title}
+                </Text>
+                <View style={styles.metaRow} accessible accessibilityLabel={`Nota ${movie.voteAverage.toFixed(1)}${movie.releaseYear ? `, lançamento em ${movie.releaseYear}` : ''}`}>
                   <Text style={styles.star}>★</Text>
                   <Text style={styles.metaText}>{movie.voteAverage.toFixed(1)}</Text>
                   {movie.releaseYear ? <Text style={styles.metaTextSecondary}> · {movie.releaseYear}</Text> : null}
                 </View>
               </View>
               {movie.genres.length > 0 ? (
-                <View style={styles.genresRow}>
+                <View
+                  style={styles.genresRow}
+                  accessible
+                  accessibilityLabel={`Gêneros: ${movie.genres.join(', ')}`}
+                >
                   {movie.genres.map(genre => (
                     <View key={genre} style={styles.genreChip}>
                       <Text style={styles.genreText}>{genre}</Text>

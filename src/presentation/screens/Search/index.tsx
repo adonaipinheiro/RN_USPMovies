@@ -37,7 +37,9 @@ export function SearchScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Text style={styles.title}>Buscar</Text>
+      <Text style={styles.title} accessibilityRole="header">
+        Buscar
+      </Text>
       <TextInput
         value={query}
         onChangeText={setQuery}
@@ -45,6 +47,9 @@ export function SearchScreen() {
         placeholderTextColor={colors.textSecondary}
         style={styles.input}
         autoCorrect={false}
+        accessibilityLabel="Buscar filme por título"
+        accessibilityHint="Digite o título de um filme para ver os resultados"
+        testID="search-input"
       />
       {!isSearching ? (
         <View style={styles.hint}>
@@ -60,6 +65,7 @@ export function SearchScreen() {
               renderItem={({ item }) => <SearchMovieItem movie={item} onToggleFavorite={toggleFavorite} />}
               ItemSeparatorComponent={() => <View style={styles.separator} />}
               contentContainerStyle={styles.listContent}
+              testID="search-list"
             />
           )}
         </StateView>

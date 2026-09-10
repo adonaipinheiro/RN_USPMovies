@@ -7,7 +7,7 @@
         "*.jsx": "${capture}.js",
         "*.tsx": "${capture}.ts",
         ".env": ".env*",
-        ".config": ".eslintrc.js, .gitignore, .prettierrc.js, app.json, babel.config.js, Gemfile, Gemfile.lock, jest.config.js, metro.config.js, tsconfig.json, .watchmanconfig",
+        ".config": ".detoxrc.js, .eslintrc.js, .gitignore, .prettierrc.js, app.json, babel.config.js, Gemfile, Gemfile.lock, jest.config.js, metro.config.js, tsconfig.json, .watchmanconfig",
         "tsconfig.json": "tsconfig.*.json",
         "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, bun.lockb, bun.lock"
     }

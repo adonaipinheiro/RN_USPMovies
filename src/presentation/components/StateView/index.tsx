@@ -24,7 +24,7 @@ export function StateView<T>({ state, onRetry, emptyMessage, children }: StateVi
 
   if (state.type === 'loading') {
     return (
-      <View style={styles.center}>
+      <View style={styles.center} accessibilityRole="progressbar" accessibilityLabel="Carregando">
         <ActivityIndicator color={colors.primary} size="large" />
       </View>
     );
@@ -36,7 +36,12 @@ export function StateView<T>({ state, onRetry, emptyMessage, children }: StateVi
 
   if (state.type === 'empty') {
     return (
-      <View style={styles.center}>
+      // camada: presentation — accessibilityLiveRegion faz o TalkBack anunciar
+      // a mudança de estado sozinho (ex.: quando uma busca termina sem
+      // resultado), sem o usuário precisar "descobrir" a tela navegando às
+      // cegas. No iOS o equivalente é o foco automático do VoiceOver, que o
+      // agrupamento accessible já cobre.
+      <View style={styles.center} accessible accessibilityLiveRegion="polite" testID="state-empty">
         <Text style={styles.title}>Nada por aqui</Text>
         <Text style={styles.message}>{emptyMessage ?? 'Não há filmes para mostrar no momento.'}</Text>
       </View>
@@ -44,12 +49,12 @@ export function StateView<T>({ state, onRetry, emptyMessage, children }: StateVi
   }
 
   return (
-    <View style={styles.center}>
+    <View style={styles.center} accessible accessibilityLiveRegion="polite" testID="state-error">
       <Text style={styles.title}>Não foi possível carregar</Text>
       <Text style={styles.message}>{state.message}</Text>
       {onRetry ? (
         <View style={styles.retryButton}>
-          <Button label="Tentar novamente" onPress={onRetry} />
+          <Button label="Tentar novamente" onPress={onRetry} testID="retry-button" />
         </View>
       ) : null}
     </View>

@@ -77,3 +77,6 @@ yarn-error.log
 
 # TMDB secrets — nunca commitar
 .env
+
+# Detox — artefatos (logs/screenshots) de cada execução E2E
+artifacts/

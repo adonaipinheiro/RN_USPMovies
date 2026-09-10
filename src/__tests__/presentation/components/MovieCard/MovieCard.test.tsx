@@ -35,6 +35,28 @@ describe('MovieCard', () => {
     expect(onToggleFavorite).toHaveBeenCalledTimes(1);
   });
 
+  it('dispara onToggleFavorite via accessibilityAction (favoritar pelo leitor de tela)', async () => {
+    const onToggleFavorite = jest.fn();
+    const { getByTestId } = await render(
+      <MovieCard movie={movie} isFavorite={false} onPress={jest.fn()} onToggleFavorite={onToggleFavorite} />,
+    );
+
+    fireEvent(getByTestId('movie-card'), 'accessibilityAction', { nativeEvent: { actionName: 'toggleFavorite' } });
+
+    expect(onToggleFavorite).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignora accessibilityAction desconhecida', async () => {
+    const onToggleFavorite = jest.fn();
+    const { getByTestId } = await render(
+      <MovieCard movie={movie} isFavorite={false} onPress={jest.fn()} onToggleFavorite={onToggleFavorite} />,
+    );
+
+    fireEvent(getByTestId('movie-card'), 'accessibilityAction', { nativeEvent: { actionName: 'activate' } });
+
+    expect(onToggleFavorite).not.toHaveBeenCalled();
+  });
+
   it('não renderiza o ano quando o filme não tem releaseYear', async () => {
     const { queryByText } = await render(
       <MovieCard

@@ -20,6 +20,10 @@ para mostrar que **arquitetura é um plano independente da tecnologia**.
 > Projeto didático. O foco é a organização em camadas, os testes e a esteira de
 > CI/CD — não uma publicação real na loja.
 
+**Aluno chegando pela aula?** [`docs/PROMPTS-CLAUDE-CODE.md`](docs/PROMPTS-CLAUDE-CODE.md)
+é o roteiro de prompts que reconstrói este app do zero com o Claude Code, em sete
+etapas — mais as armadilhas reais que apareceram durante a construção.
+
 ## Funcionalidades
 
 | # | Feature | Detalhe |

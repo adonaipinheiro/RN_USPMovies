@@ -16,6 +16,7 @@ seguindo o mesmo desenho).
 | `.github/workflows/android-release.yml` | `workflow_call` (só via `release.yml`) | Compila o `.aab` assinado e publica como artefato do run. O passo de envio pro Google Play está **comentado** — reativar depois. |
 | `.github/actions/install-deps/` | — | Composite action reutilizada por todos: `setup-node@22` + `yarn install --frozen-lockfile` com cache. |
 | `.github/scripts/coverage-report.js` | — | Node puro, sem dependências: transforma o `coverage-summary.json` do Jest na tabela em Markdown usada pelo Job Summary e pelo comentário no PR. |
+| `.github/scripts/back-merge.sh` | — | Sincroniza a `develop` com a `main` depois de cada release (ver abaixo). |
 
 ## Fluxo do `release.yml`
 
@@ -28,6 +29,36 @@ seguindo o mesmo desenho).
    _Publish to Google Play_ está comentado por enquanto — só buildamos o AAB.
 
 Coloque `[skip android]` na mensagem do commit para pular o build da plataforma.
+
+## Back-merge automático (`main` → `develop`)
+
+O `release.yml` bumpa **minor na `main`** e **patch na `develop`**. Sem nada
+devolvendo uma para a outra, as duas divergem em `package.json` e
+`android/app/build.gradle`, e **toda** promoção `develop` → `main` chega
+conflitada — aconteceu em três PRs seguidos antes deste job existir.
+
+Depois de um release na `main`, o job `back-merge` mergeia a `main` de volta na
+`develop`. A lógica está em `.github/scripts/back-merge.sh`:
+
+| Situação | O que faz |
+| --- | --- |
+| `develop` já contém a `main` | Não faz nada e sai com sucesso. |
+| Merge limpo | Commita e empurra. |
+| Conflito **só** em `package.json` / `build.gradle` | Resolve sozinho: mantém o conteúdo da `develop` (`--ours`) e aplica por cima o `versionName` da `main` e o maior `versionCode`. |
+| Conflito em **qualquer outro** arquivo | Aborta o merge, abre um PR `main` → `develop` e falha o job. |
+
+Duas decisões que valem explicação:
+
+- **Por que `--ours` e não `--theirs`.** Tomar o lado da `main` inteiro
+  descartaria em silêncio o que só existe na `develop` (uma dependência nova no
+  `package.json`, por exemplo). O script fica com o arquivo da `develop` e
+  sobrescreve **apenas as linhas de versão**.
+- **Por que o commit leva `[skip ci]`.** Sem ele o `release.yml` roda na
+  `develop`, bumpa a versão outra vez e recria na hora a divergência que o job
+  existe para fechar. O conteúdo empurrado é idêntico ao que a `main` acabou de
+  testar, então não há o que revalidar.
+
+O script é rodável à mão, da raiz do repo, com a `develop` em checkout.
 
 ## Publicação da cobertura
 
